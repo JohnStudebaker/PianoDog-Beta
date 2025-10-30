@@ -473,15 +473,15 @@ Public Class JoyData
                 If ndt.RightCount > 0 Then
                     thisOne.RightPercent = Math.Min(100, Math.Max(1, ((ndt.RightVal \ ndt.RightCount) - rightMin) / (rightMax - rightMin) * 100))
                     If ndt.RightTrue > ndt.RightFalse Then
-                            thisOne.RightTrue = 1
-                        Else
-                            thisOne.RightFalse = 1
-                        End If
+                        thisOne.RightTrue = 1
                     Else
-                        thisOne.RightPercent = 0
-                        thisOne.RightTrue = 0
-                        thisOne.RightFalse = 0
+                        thisOne.RightFalse = 1
                     End If
+                Else
+                    thisOne.RightPercent = 0
+                    thisOne.RightTrue = 0
+                    thisOne.RightFalse = 0
+                End If
                 newnewdatalist.Add(thisOne)
                 lastMouthPercent = thisOne.MouthPercent
             End If
@@ -546,4 +546,7 @@ Public Class JoyData
             Next
         End Using
     End Sub
+
+
+
 End Class

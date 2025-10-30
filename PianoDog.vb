@@ -9,8 +9,7 @@ Imports NAudio.CoreAudioApi
 'Imports Windows.Web.Http.Filters
 
 Public Class PianoDog
-
-    Private Const testingnow As Boolean = False
+    Public Event UploadProgress(ByVal thePercent As Integer)
 
     Private Const cMouthClosed As Integer = 68
     Private Const cMouthOpen As Integer = 74   'was 74, trying 72 to see if it helps with overextension
@@ -55,11 +54,11 @@ Public Class PianoDog
         _SongName = theDataFile
         _theSong = New List(Of songData)
         Dim s() As String
-        Using txIN As IO.StreamReader = IO.File.OpenText($"{theDataFile}_final_output.csv")
+        Using txIN As IO.StreamReader = IO.File.OpenText($"{theDataFile}")
             While Not txIN.EndOfStream
                 s = txIN.ReadLine.Split(",")
                 If s.Length > 7 AndAlso IsNumeric(s(0)) Then
-                    If (Not testingnow) OrElse (s(0) < 30000) Then
+                    If (justSeconds = 0) OrElse (s(0) < justSeconds * 1000) Then
                         _theSong.Add(New songData With {.Milliseconds = s(0), .MouthPercentOpen = s(1), .HeadPercentUp = s(2), .NeckPercentRight = s(3), .LeftHorizontalPercentOut = s(4), .LeftVerticalPercentUp = s(5), .RightHorizontalPercentOut = s(6), .RightVerticalPercentUp = s(7)})
                     End If
                 End If
@@ -69,7 +68,8 @@ Public Class PianoDog
 
     End Sub
 
-    Public Function PublishSong(ByRef UpdateLabel1 As System.Windows.Forms.Label) As String
+    Public Function PublishSong() As String
+
         Dim lastHead As Integer = 0
         Dim lastMouth As Integer = 0
         Dim lastNeck As Integer = 0
@@ -86,15 +86,12 @@ Public Class PianoDog
         Dim sRet As String = "OK"
 
         If _theSong IsNot Nothing Then
-            Using txOUT As IO.StreamWriter = IO.File.CreateText($"{_SongName}_pianodog_out.csv")
-                If testingnow Then
-                    s1 = "OK:"
-                Else
-                    s1 = HTTPHelper($"http://pianodog.local/Size?as={_theSong.Count}")
-                End If
+            '  Using txOUT As IO.StreamWriter = IO.File.CreateText($"{_SongName}_pianodog_out.csv")
+            s1 = HTTPHelper($"http://pianodog.local/Size?as={_theSong.Count}")
                 If Not s1.StartsWith("OK") Then
                     sRet = "ERROR: " & s1
                 End If
+                'RaiseEvent UploadProgress(5)
                 sb.Length = 0
                 If sRet = "OK" Then
                     For iCount = 1 To _theSong.Count - 1
@@ -149,35 +146,28 @@ Public Class PianoDog
                             st.Append("0")
                         End If
                         sb.Append(st.ToString)
-                        txOUT.WriteLine(st.ToString)
-                        sb.Append(vbLf)
-                        If sb.Length > (1024 * 4) Then
-                            If testingnow Then
-                                s1 = "OK:"
-                            Else
-                                s1 = HTTPHelper($"http://pianodog.local/Data", sb.ToString)
-                            End If
+                    '             txOUT.WriteLine(st.ToString)
+                    sb.Append(vbLf)
+                        If sb.Length > (1024) Then
+                            s1 = HTTPHelper($"http://pianodog.local/Data", sb.ToString)
                             If Not s1.StartsWith("OK") Then
                                 sRet = "ERROR: " & s1
                                 Exit For
                             End If
-                            UpdateLabel1.Text = Math.Round(100 * iCount / _theSong.Count, 0) & "%"
-                            UpdateLabel1.Refresh()
+                            RaiseEvent UploadProgress((Math.Round(100 * iCount / _theSong.Count, 0)))
+                            'Threading.Thread.Sleep(100)
                             sb.Length = 0
                         End If
                     Next
                     If sb.Length > 0 AndAlso sRet = "OK" Then
-                        If testingnow Then
-                            s1 = "OK:"
-                        Else
-                            s1 = HTTPHelper($"http://pianodog.local/Data", sb.ToString)
-                        End If
+                        s1 = HTTPHelper($"http://pianodog.local/Data", sb.ToString)
                         If Not s1.StartsWith("OK") Then
                             sRet = "ERROR: " & s1
                         End If
                     End If
+                    RaiseEvent UploadProgress(100)
                 End If
-            End Using
+            'End Using
         End If
         Return sRet
     End Function
@@ -187,37 +177,29 @@ Public Class PianoDog
         Dim sRet As String = "OK"
         Dim s As String
         Dim x As DateTimeOffset = New DateTimeOffset(WhenToStart)
-        If Not testingnow Then
-            s = HTTPHelper($"http://pianodog.local/Run?run={x.ToUnixTimeMilliseconds.ToString}")
-            If Not s.StartsWith("OK") Then
-                sRet = "ERROR: " & s
-            End If
-        End If
+        s = HTTPHelper($"http://pianodog.local/Run?run={x.ToUnixTimeMilliseconds.ToString}")
         Return sRet
     End Function
 
     Public Function TimeSync(ByVal ThisIP As String) As Long
         Dim s As String
-        If Not testingnow Then
-            s = HTTPHelper($"http://pianodog.local/Sync?sync={ThisIP}")
-            If Not IsNumeric(s) Then
-                Return -1
-            Else
-                Return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds - CLng(s)
-            End If
-        Else
+        If testingnow Then
+            Return 1
+        End If
+        s = HTTPHelper($"http://pianodog.local/Sync?sync={ThisIP}")
+        If Not IsNumeric(s) Then
             Return 0
+        Else
+            Return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds - CLng(s)
         End If
     End Function
 
     Public Function ScheduleStart(WhenToStart As DateTime) As String
         Dim sRet As String = "OK"
         Dim s As String
-        If Not testingnow Then
-            s = HTTPHelper($"http://pianodog.local/Run?run={Format(WhenToStart, "yyyy-MM-dd HH:mm:ss")}")
-            If Not s.StartsWith("OK") Then
-                sRet = "ERROR: " & s
-            End If
+        s = HTTPHelper($"http://pianodog.local/Run?run={Format(WhenToStart, "yyyy-MM-dd HH:mm:ss")}")
+        If Not s.StartsWith("OK") Then
+            sRet = "ERROR: " & s
         End If
         Return sRet
     End Function
@@ -226,10 +208,13 @@ Public Class PianoDog
         ' But for a simple synchronous function, a new instance is acceptable.
         Dim response As HttpResponseMessage
         Dim responseData As String = "ERROR"
+        If testingnow Then
+            Return "OK:"
+        End If
         Using H As New HttpClient()
             Try
                 ' 1. Set the timeout to 30 seconds.
-                H.Timeout = TimeSpan.FromSeconds(30)
+                H.Timeout = TimeSpan.FromSeconds(90)
                 If String.IsNullOrEmpty(theData) Then
                     ' If no data, do a simple GET
                     response = H.GetAsync(theURL).Result

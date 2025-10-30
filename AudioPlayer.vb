@@ -1,4 +1,5 @@
 ﻿Imports System.Runtime.CompilerServices
+Imports NAudio.Utils
 Imports NAudio.Wave
 Imports NAudio.Wave.SampleProviders
 Public Class AudioPlayer
@@ -94,10 +95,10 @@ Public Class AudioPlayer
     End Sub
     Public ReadOnly Property getMillies As Long
         Get
-            If wavReader Is Nothing Then
+            If waveOut Is Nothing Then
                 Return 0
             Else
-                Return wavReader.CurrentTime.TotalMilliseconds 'msAccurate
+                Return waveOut.GetPositionTimeSpan.TotalMilliseconds
             End If
         End Get
     End Property

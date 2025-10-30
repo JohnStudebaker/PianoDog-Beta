@@ -8,7 +8,7 @@ Public Class Preview2
     Private _isDragging As Boolean = False
     Private _dragStartPoint As Point
 
-    Public BasePath As String
+    Public basePath As String
     Private SongData As New List(Of PlayData)
 
     Private _sourceBitmap As Bitmap
@@ -39,7 +39,7 @@ Public Class Preview2
         Dim thisStart As Integer
         Dim pixelsPerSecond As Integer = 16 'make sure this matches the waveform generation rate
         Dim remember As New PlayData With {.Millies = 0, .Mouth = 0, .Head = 0, .Neck = 0, .LeftHoriz = 0, .LeftVert = 0, .RightHoriz = 0, .RightVert = 0}
-        Using txIn As StreamReader = IO.File.OpenText($"{BasePath}_final_output.csv")
+        Using txIn As StreamReader = IO.File.OpenText($"{basePath}_final_Output.csv")
             Dim line() As String
             Using g As Graphics = Graphics.FromImage(_pctBitmap)
                 g.SmoothingMode = SmoothingMode.AntiAlias
@@ -298,159 +298,139 @@ Public Class Preview2
         Public whatValue As Integer
     End Class
 
-    Private Class savestruct
-        Public Property Time As Long
-        Public Property Val1 As Integer
-        Public Property Val2 As Integer
-        Public Property Val3 As Integer
-        Public Property Val4 As Integer
-        Public Property Val5 As Integer
-        Public Property Val6 As Integer
-        Public Property Val7 As Integer
-    End Class
-
     Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
-            Dim startTime As Long = AP.getMillies
-            Dim changeTime As Long
-            Dim newFile As String
-            Dim l As New List(Of WarpData)
-            Dim line() As String
-            Dim WD As WarpData
-            Using tw As New TimeWarp
-                tw.ShowDialog(Me)
-                changeTime = tw.theMillis
-                If tw.theAction <> "Cancel" Then
+        Dim startTime As Long = AP.getMillies
+        Dim changeTime As Long
+        Dim newFile As String
+        Dim l As New List(Of WarpData)
+        Dim line() As String
+        Dim WD As WarpData
+        Using tw As New TimeWarp
+            tw.ShowDialog(Me)
+            changeTime = tw.theMillis
+            If tw.theAction <> "Cancel" Then
                 AP.StopPlayback()
                 APOffset = startTime
                 newFile = $"{BasePath}_final_output_{Format(Date.Now, "yyyyMMddHHmmssfff")}.csv"
-                    IO.File.Move($"{BasePath}_final_output.csv", newFile, True)
-                    Using txIn As StreamReader = IO.File.OpenText(newFile)
-                        While Not txIn.EndOfStream
-                            line = txIn.ReadLine().Split(","c)
-                            If Not Integer.TryParse(line(0), Nothing) Then Continue While
-                            WD = New WarpData
-                            With WD
-                                .Millis = CInt(line(0))
-                                .whichServo = 1
-                                .whatValue = CInt(line(1))
-                            End With
-                            If CInt(line(0)) >= startTime AndAlso tw.theMouth Then
-                                WD.Millis += changeTime
-                            End If
-                            l.Add(WD)
-                            WD = New WarpData
-                            With WD
-                                .Millis = CInt(line(0))
-                                .whichServo = 2
-                                .whatValue = CInt(line(2))
-                            End With
-                            If CInt(line(0)) >= startTime AndAlso tw.theHead Then
-                                WD.Millis += changeTime
-                            End If
-                            l.Add(WD)
-                            WD = New WarpData
-                            With WD
-                                .Millis = CInt(line(0))
-                                .whichServo = 3
-                                .whatValue = CInt(line(3))
-                            End With
-                            If CInt(line(0)) >= startTime AndAlso tw.theNeck Then
-                                WD.Millis += changeTime
-                            End If
-                            l.Add(WD)
-                            WD = New WarpData
-                            With WD
-                                .Millis = CInt(line(0))
-                                .whichServo = 4
-                                .whatValue = CInt(line(4))
-                            End With
-                            If CInt(line(0)) >= startTime AndAlso tw.theLeftH Then
-                                WD.Millis += changeTime
-                            End If
-                            l.Add(WD)
-                            WD = New WarpData
-                            With WD
-                                .Millis = CInt(line(0))
-                                .whichServo = 5
-                                .whatValue = CInt(line(5))
-                            End With
-                            If CInt(line(0)) >= startTime AndAlso tw.theLeftV Then
-                                WD.Millis += changeTime
-                            End If
-                            l.Add(WD)
-                            WD = New WarpData
-                            With WD
-                                .Millis = CInt(line(0))
-                                .whichServo = 6
-                                .whatValue = CInt(line(6))
-                            End With
-                            If CInt(line(0)) >= startTime AndAlso tw.theRightH Then
-                                WD.Millis += changeTime
-                            End If
-                            l.Add(WD)
-                            WD = New WarpData
-                            With WD
-                                .Millis = CInt(line(0))
-                                .whichServo = 7
-                                .whatValue = CInt(line(7))
-                            End With
-                            If CInt(line(0)) >= startTime AndAlso tw.theRightV Then
-                                WD.Millis += changeTime
-                            End If
-                            l.Add(WD)
-                        End While
-                    End Using
-                    l.Sort(Function(a, b)
-                               If a.Millis = b.Millis Then
-                                   Return a.whichServo.CompareTo(b.whichServo)
-                               Else
-                                   Return a.Millis.CompareTo(b.Millis)
-                               End If
-                           End Function)
-                Dim aSave() As savestruct
+                IO.File.Move($"{BasePath}_final_output.csv", newFile, True)
+                Using txIn As StreamReader = IO.File.OpenText(newFile)
+                    While Not txIn.EndOfStream
+                        line = txIn.ReadLine().Split(","c)
+                        If Not Integer.TryParse(line(0), Nothing) Then Continue While
+                        WD = New WarpData
+                        With WD
+                            .Millis = CInt(line(0))
+                            .whichServo = 1
+                            .whatValue = CInt(line(1))
+                        End With
+                        If CInt(line(0)) >= startTime AndAlso tw.theMouth Then
+                            WD.Millis += changeTime
+                        End If
+                        l.Add(WD)
+                        WD = New WarpData
+                        With WD
+                            .Millis = CInt(line(0))
+                            .whichServo = 2
+                            .whatValue = CInt(line(2))
+                        End With
+                        If CInt(line(0)) >= startTime AndAlso tw.theHead Then
+                            WD.Millis += changeTime
+                        End If
+                        l.Add(WD)
+                        WD = New WarpData
+                        With WD
+                            .Millis = CInt(line(0))
+                            .whichServo = 3
+                            .whatValue = CInt(line(3))
+                        End With
+                        If CInt(line(0)) >= startTime AndAlso tw.theNeck Then
+                            WD.Millis += changeTime
+                        End If
+                        l.Add(WD)
+                        WD = New WarpData
+                        With WD
+                            .Millis = CInt(line(0))
+                            .whichServo = 4
+                            .whatValue = CInt(line(4))
+                        End With
+                        If CInt(line(0)) >= startTime AndAlso tw.theLeftH Then
+                            WD.Millis += changeTime
+                        End If
+                        l.Add(WD)
+                        WD = New WarpData
+                        With WD
+                            .Millis = CInt(line(0))
+                            .whichServo = 5
+                            .whatValue = CInt(line(5))
+                        End With
+                        If CInt(line(0)) >= startTime AndAlso tw.theLeftV Then
+                            WD.Millis += changeTime
+                        End If
+                        l.Add(WD)
+                        WD = New WarpData
+                        With WD
+                            .Millis = CInt(line(0))
+                            .whichServo = 6
+                            .whatValue = CInt(line(6))
+                        End With
+                        If CInt(line(0)) >= startTime AndAlso tw.theRightH Then
+                            WD.Millis += changeTime
+                        End If
+                        l.Add(WD)
+                        WD = New WarpData
+                        With WD
+                            .Millis = CInt(line(0))
+                            .whichServo = 7
+                            .whatValue = CInt(line(7))
+                        End With
+                        If CInt(line(0)) >= startTime AndAlso tw.theRightV Then
+                            WD.Millis += changeTime
+                        End If
+                        l.Add(WD)
+                    End While
+                End Using
+                l.Sort(Function(a, b)
+                           If a.Millis = b.Millis Then
+                               Return a.whichServo.CompareTo(b.whichServo)
+                           Else
+                               Return a.Millis.CompareTo(b.Millis)
+                           End If
+                       End Function)
+                Dim aSave() As SaveClass
                 ReDim aSave(l.Count) ' way more than we need
                 For i As Integer = 0 To aSave.Length - 1
-                    aSave(i) = New savestruct With {
-                        .Time = 0,
-                        .Val1 = 0,
-                        .Val2 = 0,
-                        .Val3 = 0,
-                        .Val4 = 0,
-                        .Val5 = 0,
-                        .Val6 = 0,
-                        .Val7 = 0
-                    }
+                    aSave(i) = New SaveClass
                 Next
                 Dim curIndex As Integer
                 For Each WD In l
-                    curIndex = Array.FindIndex(Of savestruct)(aSave, Function(s) s.Time = WD.Millis)
+                    curIndex = Array.FindIndex(Of SaveClass)(aSave, Function(s) s.Time = WD.Millis)
                     If curIndex = -1 Then
                         ' New time entry
-                        curIndex = Array.FindIndex(Of savestruct)(aSave, Function(s) s.Time = 0)
+                        curIndex = Array.FindIndex(Of SaveClass)(aSave, Function(s) s.Time = 0)
                         aSave(curIndex).Time = WD.Millis
                     End If
                     Select Case WD.whichServo
                         Case 1
-                            aSave(curIndex).Val1 = WD.whatValue
+                            aSave(curIndex).Mouth = WD.whatValue
                         Case 2
-                            aSave(curIndex).Val2 = WD.whatValue
+                            aSave(curIndex).Head = WD.whatValue
                         Case 3
-                            aSave(curIndex).Val3 = WD.whatValue
+                            aSave(curIndex).Neck = WD.whatValue
                         Case 4
-                            aSave(curIndex).Val4 = WD.whatValue
+                            aSave(curIndex).LeftHorz = WD.whatValue
                         Case 5
-                            aSave(curIndex).Val5 = WD.whatValue
+                            aSave(curIndex).LeftVert = WD.whatValue
                         Case 6
-                            aSave(curIndex).Val6 = WD.whatValue
+                            aSave(curIndex).RightHorz = WD.whatValue
                         Case 7
-                            aSave(curIndex).Val7 = WD.whatValue
+                            aSave(curIndex).RightVert = WD.whatValue
                     End Select
                 Next
 
                 Using txOut As StreamWriter = IO.File.CreateText($"{BasePath}_final_output.csv")
                     For curIndex = 0 To aSave.Length - 1
                         If aSave(curIndex).Time > 0 Then
-                            txOut.WriteLine($"{aSave(curIndex).Time},{aSave(curIndex).Val1},{aSave(curIndex).Val2},{aSave(curIndex).Val3},{aSave(curIndex).Val4},{aSave(curIndex).Val5},{aSave(curIndex).Val6},{aSave(curIndex).Val7}")
+                            txOut.WriteLine($"{aSave(curIndex).Time},{aSave(curIndex).Mouth},{aSave(curIndex).Head},{aSave(curIndex).Neck},{aSave(curIndex).LeftHorz},{aSave(curIndex).LeftVert},{aSave(curIndex).RightHorz},{aSave(curIndex).RightVert}")
                         End If
                     Next
                 End Using
@@ -459,4 +439,4 @@ Public Class Preview2
             End If
         End Using
     End Sub
-    End Class
+End Class

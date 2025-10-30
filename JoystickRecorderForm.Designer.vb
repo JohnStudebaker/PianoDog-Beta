@@ -45,7 +45,7 @@ Partial Class JoystickRecorderForm
         ' 
         ' Button1
         ' 
-        Button1.Location = New Point(75, 280)
+        Button1.Location = New Point(75, 342)
         Button1.Name = "Button1"
         Button1.Size = New Size(75, 23)
         Button1.TabIndex = 0
@@ -72,7 +72,7 @@ Partial Class JoystickRecorderForm
         ' 
         ' Button4
         ' 
-        Button4.Location = New Point(547, 309)
+        Button4.Location = New Point(547, 345)
         Button4.Name = "Button4"
         Button4.Size = New Size(241, 23)
         Button4.TabIndex = 3
@@ -81,7 +81,7 @@ Partial Class JoystickRecorderForm
         ' 
         ' Button5
         ' 
-        Button5.Location = New Point(547, 280)
+        Button5.Location = New Point(547, 316)
         Button5.Name = "Button5"
         Button5.Size = New Size(241, 23)
         Button5.TabIndex = 4
@@ -90,7 +90,7 @@ Partial Class JoystickRecorderForm
         ' 
         ' Button6
         ' 
-        Button6.Location = New Point(75, 395)
+        Button6.Location = New Point(75, 371)
         Button6.Name = "Button6"
         Button6.Size = New Size(75, 23)
         Button6.TabIndex = 5
@@ -106,11 +106,11 @@ Partial Class JoystickRecorderForm
         ' 
         ' Button7
         ' 
-        Button7.Location = New Point(75, 341)
+        Button7.Location = New Point(466, 238)
         Button7.Name = "Button7"
         Button7.Size = New Size(75, 23)
         Button7.TabIndex = 7
-        Button7.Text = "Back 10/5"
+        Button7.Text = "do not useBack 10/5"
         Button7.UseVisualStyleBackColor = True
         ' 
         ' Timer1
@@ -137,7 +137,7 @@ Partial Class JoystickRecorderForm
         ' lbRight
         ' 
         lbRight.AutoSize = True
-        lbRight.Location = New Point(807, 284)
+        lbRight.Location = New Point(807, 320)
         lbRight.Name = "lbRight"
         lbRight.Size = New Size(41, 15)
         lbRight.TabIndex = 10
@@ -146,7 +146,7 @@ Partial Class JoystickRecorderForm
         ' lbLeft
         ' 
         lbLeft.AutoSize = True
-        lbLeft.Location = New Point(807, 313)
+        lbLeft.Location = New Point(807, 349)
         lbLeft.Name = "lbLeft"
         lbLeft.Size = New Size(41, 15)
         lbLeft.TabIndex = 11
@@ -163,7 +163,7 @@ Partial Class JoystickRecorderForm
         ' 
         ' Button8
         ' 
-        Button8.Location = New Point(547, 367)
+        Button8.Location = New Point(547, 403)
         Button8.Name = "Button8"
         Button8.Size = New Size(241, 23)
         Button8.TabIndex = 13
@@ -172,7 +172,7 @@ Partial Class JoystickRecorderForm
         ' 
         ' Button9
         ' 
-        Button9.Location = New Point(547, 338)
+        Button9.Location = New Point(547, 374)
         Button9.Name = "Button9"
         Button9.Size = New Size(241, 23)
         Button9.TabIndex = 14
@@ -182,7 +182,7 @@ Partial Class JoystickRecorderForm
         ' lbMHN
         ' 
         lbMHN.AutoSize = True
-        lbMHN.Location = New Point(807, 342)
+        lbMHN.Location = New Point(807, 378)
         lbMHN.Name = "lbMHN"
         lbMHN.Size = New Size(41, 15)
         lbMHN.TabIndex = 15

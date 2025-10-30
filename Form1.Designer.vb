@@ -32,6 +32,9 @@ Partial Class Form1
         Button6 = New Button()
         Button8 = New Button()
         Button5 = New Button()
+        Button7 = New Button()
+        Button9 = New Button()
+        Button10 = New Button()
         SuspendLayout()
         ' 
         ' Button1
@@ -121,11 +124,41 @@ Partial Class Form1
         Button5.Text = "Debug"
         Button5.UseVisualStyleBackColor = True
         ' 
+        ' Button7
+        ' 
+        Button7.Location = New Point(259, 370)
+        Button7.Name = "Button7"
+        Button7.Size = New Size(75, 23)
+        Button7.TabIndex = 16
+        Button7.Text = "Autorun"
+        Button7.UseVisualStyleBackColor = True
+        ' 
+        ' Button9
+        ' 
+        Button9.Location = New Point(561, 210)
+        Button9.Name = "Button9"
+        Button9.Size = New Size(75, 23)
+        Button9.TabIndex = 17
+        Button9.Text = "Button9"
+        Button9.UseVisualStyleBackColor = True
+        ' 
+        ' Button10
+        ' 
+        Button10.Location = New Point(409, 88)
+        Button10.Name = "Button10"
+        Button10.Size = New Size(75, 23)
+        Button10.TabIndex = 18
+        Button10.Text = "YOLO"
+        Button10.UseVisualStyleBackColor = True
+        ' 
         ' Form1
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
+        Controls.Add(Button10)
+        Controls.Add(Button9)
+        Controls.Add(Button7)
         Controls.Add(Button5)
         Controls.Add(Button8)
         Controls.Add(Button6)
@@ -151,5 +184,8 @@ Partial Class Form1
     Friend WithEvents Button6 As Button
     Friend WithEvents Button8 As Button
     Friend WithEvents Button5 As Button
+    Friend WithEvents Button7 As Button
+    Friend WithEvents Button9 As Button
+    Friend WithEvents Button10 As Button
 
 End Class

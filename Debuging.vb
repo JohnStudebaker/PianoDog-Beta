@@ -79,28 +79,30 @@ Public Class Debuging
             lbMillis.Text = "Time Sync Failed"
             Return
         End If
-        s = pd.PublishSong(lbMillis)
+        s = pd.PublishSong()
         If Not s.StartsWith("OK") Then
             MessageBox.Show(s, "Error Loading Song", MessageBoxButtons.OK, MessageBoxIcon.Error)
             lbMillis.Text = "Error Loading Song"
             Return
         End If
-        Using txin As IO.StreamReader = New IO.StreamReader($"{_theSong}_pianodog_out.csv")
-            While Not txin.EndOfStream
-                Dim line As String = txin.ReadLine()
-                Dim parts() As String = line.Split(","c)
-                Dim td As New theData
-                td.Millis = Long.Parse(parts(1))
-                td.Mouth = Integer.Parse(parts(2))
-                td.Neck = Integer.Parse(parts(3))
-                td.Head = Integer.Parse(parts(4))
-                td.LeftH = Integer.Parse(parts(5))
-                td.LeftV = Integer.Parse(parts(6))
-                td.RightH = Integer.Parse(parts(7))
-                td.RightV = Integer.Parse(parts(8))
-                _songData.Add(td)
-            End While
-        End Using
+        If False Then
+            Using txin As IO.StreamReader = New IO.StreamReader($"{_theSong}_pianodog_out.csv")
+                While Not txin.EndOfStream
+                    Dim line As String = txin.ReadLine()
+                    Dim parts() As String = line.Split(","c)
+                    Dim td As New theData
+                    td.Millis = Long.Parse(parts(1))
+                    td.Mouth = Integer.Parse(parts(2))
+                    td.Neck = Integer.Parse(parts(3))
+                    td.Head = Integer.Parse(parts(4))
+                    td.LeftH = Integer.Parse(parts(5))
+                    td.LeftV = Integer.Parse(parts(6))
+                    td.RightH = Integer.Parse(parts(7))
+                    td.RightV = Integer.Parse(parts(8))
+                    _songData.Add(td)
+                End While
+            End Using
+        End If
         _curIndex = 0
         Dim showTime As DateTime = DateTime.UtcNow.AddSeconds(5)
         Debug.Print("Show Time: " & showTime.ToString("yyyy-MM-dd HH:mm:ss"))

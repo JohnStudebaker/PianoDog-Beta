@@ -5,12 +5,15 @@ Imports System.IO
 Imports System.Net
 Imports System.Net.Sockets
 Imports NAudio.Wave
+Imports System.Drawing.Imaging  ' For ImageAttributes
 
 Module GeneralSubroutines
-    Public Const MSPerSample = 62
+    Public Const MSPerSample = 40
     Public Const AllPWMMin = 22
     Public Const AllPWMMid = 76
     Public Const AllPWMMax = 126
+    Public Const justSeconds As Integer = 0
+    Public Const testingnow As Boolean = False
     Private Class inData
         Public Property Time As Long
         Public Property MouthDown As Integer
@@ -1089,11 +1092,13 @@ Module GeneralSubroutines
 
             ' Loop through all the IP addresses associated with the host.
             For Each ip As IPAddress In ipEntry.AddressList
-                ' We are looking for an IPv4 address.
-                If ip.AddressFamily = AddressFamily.InterNetwork Then
+            ' We are looking for an IPv4 address.
+            If ip.AddressFamily = AddressFamily.InterNetwork Then
+                If ip.ToString.StartsWith("192.168.1.") Then
                     Return ip.ToString()
                 End If
-            Next
+            End If
+        Next
 
             ' If no IPv4 address was found, return a message.
             Return "No local IPv4 address found."
@@ -1181,5 +1186,190 @@ Module GeneralSubroutines
         End Try
         Return bmp
     End Function
+
+
+    ''' <summary>
+    ''' Updates a PictureBox with a "clock-wipe" progress effect, revealing a 
+    ''' color image over a grayscale image based on a percentage.
+    ''' </summary>
+    ''' <param name="picBox">The PictureBox control to update.</param>
+    ''' <param name="bwImage">The pre-rendered grayscale version of the logo.</param>
+    ''' <param name="colorImage">The original color version of the logo.</param>
+    ''' <param name="percentDone">The progress, from 0 to 100.</param>
+    Public Sub UpdateProgressImage(ByVal picBox As PictureBox,
+                                   ByVal bwImage As Image,
+                                   ByVal colorImage As Image,
+                                   ByVal percentDone As Integer)
+
+        ' Ensure percent is within the valid 0-100 range
+        Dim clampedPercent As Integer = Math.Max(0, Math.Min(100, percentDone))
+
+        ' Create a new bitmap to draw our composite image on
+        ' We use the color image's format to preserve transparency (if any)
+        Dim newImage As New Bitmap(colorImage.Width, colorImage.Height, colorImage.PixelFormat)
+
+        ' Get the graphics object to draw on our new bitmap
+        Using g As Graphics = Graphics.FromImage(newImage)
+            ' Set high quality for smooth edges
+            g.SmoothingMode = SmoothingMode.AntiAlias
+
+            ' 1. Draw the entire black and white image as the base layer
+            g.DrawImage(bwImage, New Rectangle With {.X = 0, .Y = 0, .Width = bwImage.Width, .Height = bwImage.Height}, New Rectangle(0, 0, bwImage.Width, bwImage.Height), GraphicsUnit.Pixel)
+
+            ' 2. Only draw the color part if progress is greater than 0
+            If clampedPercent > 0 Then
+
+                ' 3. Calculate the "sweep angle" of the pie.
+                ' A full circle is 360 degrees. (percent / 100) * 360 = percent * 3.6
+                ' We use Single (float) for precision.
+                Dim sweepAngle As Single = CSng(clampedPercent * 3.6)
+
+                ' 4. Create a new "pie" shape to use as a mask
+                Dim pieRect As New Rectangle(0, 0, colorImage.Width, colorImage.Height)
+                Using piePath As New GraphicsPath()
+                    ' AddPie(Rectangle, StartAngle, SweepAngle)
+                    ' StartAngle: -90 degrees is 12 o'clock (0 is 3 o'clock)
+                    piePath.AddPie(pieRect, -90.0F, sweepAngle)
+
+                    ' 5. Apply this pie shape as a clipping region.
+                    ' From now on, any drawing will *only* happen inside this shape.
+                    g.SetClip(piePath)
+
+                    ' 6. Draw the *entire* color image.
+                    ' Only the part inside the "pie" mask will be visible.
+                    g.DrawImage(colorImage, New Rectangle With {.X = 0, .Y = 0, .Width = colorImage.Width, .Height = colorImage.Height}, New Rectangle(0, 0, colorImage.Width, colorImage.Height), GraphicsUnit.Pixel)
+                End Using ' Disposes piePath
+            End If
+        End Using ' Disposes g
+
+        ' 7. Manage memory and update the PictureBox
+        ' Get a reference to the old image that's currently in the PictureBox
+        Dim oldImage As Image = picBox.Image
+
+        ' Set the PictureBox's image to our newly created composite image
+        picBox.Image = newImage
+        picBox.SizeMode = PictureBoxSizeMode.Zoom
+
+        ' Now that the new image is set, dispose the old one to prevent memory leaks
+        If oldImage IsNot Nothing Then
+            oldImage.Dispose()
+        End If
+
+    End Sub
+
+    Public Class SaveClass
+        Public Time As Long
+        Public Mouth As Integer
+        Public Head As Integer
+        Public Neck As Integer
+        Public LeftHorz As Integer
+        Public LeftVert As Integer
+        Public RightHorz As Integer
+        Public RightVert As Integer
+
+        Public Sub New()
+            Time = 0
+            Mouth = 0
+            Head = 0
+            Neck = 0
+            LeftHorz = 0
+            LeftVert = 0
+            RightHorz = 0
+            RightVert = 0
+        End Sub
+
+        Public Sub New(Millis As Long, MouthIn As Integer, HeadIn As Integer, NeckIn As Integer, LHorzIn As Integer, LVertIn As Integer, RHorzIn As Integer, RVertIn As Integer)
+            Time = Millis
+            Mouth = MouthIn
+            Head = HeadIn
+            Neck = NeckIn
+            LeftHorz = LHorzIn
+            LeftVert = LVertIn
+            RightHorz = RHorzIn
+            RightVert = RVertIn
+        End Sub
+    End Class
+    Public Sub ModifyFinal(ByVal filename As String)
+        Dim MinHandTime As Integer = 125 ' 1/4 sec
+        Dim snew As String = IO.Path.Combine(IO.Path.GetDirectoryName(filename), IO.Path.GetFileNameWithoutExtension(filename) & $"_{Format(Date.Now, "yyyyMMddHHmmss")}{IO.Path.GetExtension(filename)}")
+        IO.File.Move(filename, snew)
+        Dim lSave As New List(Of SaveClass)
+        Dim aSave() As SaveClass
+        Dim i As Integer
+        Dim line As String
+        Dim parts() As String
+        Dim makeMe As SaveClass
+        Using txIn As New IO.StreamReader(snew)
+            line = txIn.ReadLine 'header
+            While Not txIn.EndOfStream
+                line = txIn.ReadLine
+                parts = line.Split(","c)
+                If parts.Length >= 8 Then
+                    makeMe = New SaveClass(Long.Parse(parts(0)), Integer.Parse(parts(1)), Integer.Parse(parts(2)), Integer.Parse(parts(3)), Integer.Parse(parts(4)), Integer.Parse(parts(5)), Integer.Parse(parts(6)), Integer.Parse(parts(7)))
+                    lSave.Add(makeMe)
+                End If
+            End While
+        End Using
+        aSave = lSave.ToArray
+        Array.Sort(Of SaveClass)(aSave, Function(xi, y) xi.Time.CompareTo(y.Time))
+        Dim newSave As New List(Of SaveClass)
+        'now i want to flatten out lefthoriz and righthoriz so if his hand is up (false) for less than 500ms, it just keeps the hand down.
+        Dim lastLeftDown As Integer = -1
+        Dim lastRightDown As Integer = -1
+        Dim lastLeftUp As Integer = -1
+        Dim lastRightUp As Integer = -1
+        Dim leftDownCounter As Integer = 0
+        Dim rightDownCounter As Integer = 0
+        Dim leftUpCounter As Integer = 0
+        Dim rightUpCounter As Integer = 0
+
+        If aSave(0).LeftVert = 100 Then
+            lastLeftDown = 0
+            leftDownCounter += 1
+        Else
+            lastLeftUp = 0
+            leftUpCounter += 1
+        End If
+        If aSave(0).RightVert = 100 Then
+            lastRightDown = 0
+            rightDownCounter += 1
+        Else
+            lastRightUp = 0
+            rightUpCounter += 1
+        End If
+        Dim startIndex As Integer = 0
+        Dim lastTime As Long = aSave(0).Time
+        Dim x As SaveClass
+        For i = 1 To aSave.Length - 1
+            x = New SaveClass(aSave(i).Time, aSave(i).Mouth, aSave(i).Head, aSave(i).Neck, aSave(i).LeftHorz, aSave(i).LeftVert, aSave(i).RightHorz, aSave(i).RightVert)
+            If x.LeftVert >= 100 Then 'hand down
+                If lastLeftUp > -1 Then
+                    If x.Time - aSave(lastLeftUp).Time < MinHandTime Then
+                        x.LeftVert = 1
+                        'keep it up
+                    End If
+                End If
+                lastLeftDown = i
+                lastLeftUp = -1
+            Else 'hand up
+                If lastLeftDown > -1 Then
+                    If x.Time - aSave(lastLeftDown).Time < MinHandTime Then
+                        'keep it down
+                        x.LeftVert = 100
+                    End If
+                End If
+                lastLeftUp = i
+                lastLeftDown = -1
+            End If
+            newSave.Add(x)
+        Next
+
+        Using txOut As New IO.StreamWriter(filename)
+            For Each item In newSave
+                txOut.WriteLine($"{item.Time},{item.Mouth},{item.Head},{item.Neck},{item.LeftHorz},{item.LeftVert},{item.RightHorz},{item.RightVert}")
+            Next
+        End Using
+    End Sub
+
 
 End Module
